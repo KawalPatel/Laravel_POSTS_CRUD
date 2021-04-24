@@ -33,18 +33,35 @@ class PostsController extends Controller
 
     public function index()
     {
-        // $posts = Post::orderBy('created_at', 'asc')->paginate(10);
-        // $client = new GuzzleHttp\Client();
-        // $posts2 = $client->request('GET', 'https://jsonplaceholder.typicode.com/posts');
-        // $posts = json_decode($posts2->getBody(), true);
-        // dd($posts);
-        $posts = Post::orderBy('created_at', 'asc')->paginate(10);
+        $posts = Post::orderBy('id', 'asc')->paginate(10);
         return view('posts.index')->with('posts', $posts);
     }
 
-    public function exportCsv()
+    public function getDataFromAPI()
     {
+        $client = new GuzzleHttp\Client();
+        $posts2 = $client->request('GET', 'https://jsonplaceholder.typicode.com/posts');
+        $posts = json_decode($posts2->getBody(), true);
 
+        for ($i = 0; $i < 100; $i++) {
+
+            $title = $posts[$i]['title'];
+            $body = $posts[$i]['body'];
+            // $title = $_REQUEST['title'];
+            // $body = $_REQUEST['body'];
+            $post = new Post;
+            $post->title = addslashes("$title");
+            $post->body = addslashes("$body");
+
+            $post->save();
+        }
+        return view('posts.index')->with('posts', $posts);
+    }
+
+    public function exportCsv(Request $request)
+    {
+        // dd($_request->all());
+        // dd($_REQUEST);
         $fileName = 'my_posts.csv';
         $tasks = Post::all();
 
@@ -134,22 +151,68 @@ class PostsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(PostsValidationRequest $request)
+    public function store(Request $request)
     {
-        //create post
-        // $this->validate($request, [
-        //     'title' => 'required',
-        //     'body' =>  'required',
-        // ]);
+        if (isset($_POST['export_to_csv'])) {
+            $cc = $request['checkbox'];
+
+            $fileName = 'my_posts.csv';
+
+            $headers = array(
+                "Content-type"        => "text/csv",
+                "Content-Disposition" => "attachment; filename=$fileName",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            );
+
+            $columns = array('id', 'title', 'body');
+            $chk = "";
+
+            $tasks = Post::all();
+            $callback = function () use ($tasks, $columns) {
+                $file = fopen('php://output', 'w');
+                fputcsv($file, $columns);
+                foreach ($_REQUEST['checkbox'] as $chk) {
+                    // dd($_REQUEST['checkbox']);
+                    // $tasks = Post::all();
+                    $tasks = Post::where("id", "=", $chk)->get();
+
+                    foreach ($tasks as $task) {
+                        $row['id']  = $task->id;
+                        $row['title']    = $task->title;
+                        $row['body']    = $task->body;
+
+                        fputcsv($file, array($row['id'], $row['title'], $row['body']));
+                    }
+                }
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        } else if (isset($_POST['getDataFromApi_StoreToDatabase'])) {
 
 
-        $post = new Post;
-        $post->title = addslashes($request->input('title'));
-        $post->body = addslashes($request->input('body'));
+            Post::query()->truncate();
+            $client = new GuzzleHttp\Client();
+            $posts2 = $client->request('GET', 'https://jsonplaceholder.typicode.com/posts');
+            $posts = json_decode($posts2->getBody(), true);
 
-        $post->save();
+            for ($i = 0; $i < 100; $i++) {
 
-        return redirect('/posts')->with('success', 'Post created');
+                $title = $posts[$i]['title'];
+                $body = $posts[$i]['body'];
+
+
+                $post = new Post;
+                $post->title = addslashes("$title");
+                $post->body = addslashes("$body");
+
+                $post->save();
+            }
+
+            return redirect('/posts')->with('success', 'Posts imported');
+        }
     }
 
 
@@ -174,7 +237,6 @@ class PostsController extends Controller
         ]);
 
         //update post
-
         $post = Post::find($id);
         $post->body = $request->input('body');
         $post->title = $request->input('title');

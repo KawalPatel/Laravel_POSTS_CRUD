@@ -10,13 +10,12 @@ This is index.blade.php
 <div class="container">
   <div style="text-align: center;">
 
-    <a href="/posts/create">Create new post</a> &nbsp;&nbsp;||<a class="btn btn-link" data-href="/exportAll" id="exportAll" onclick="exportTasks(event.target);">Export all data to CSV</a>
-
+    <a class="btn btn-link" data-href="/exportAll" id="exportAll" onclick="exportTasks(event.target);">Export all data to CSV</a>
     <br><br>
+    <div style="float: right;"><br>{{ $posts->links() }}<br></div>
   </div>
-  <div style="float: right;">{{ $posts->links() }}</div>
   <br>
-  <form action="customExport" method="POST" enctype="multipart/form-data">
+  <form action="postuser" method="POST" enctype="multipart/form-data">
     @csrf
     <table class="table table-striped" id="category-table">
       <tr>
@@ -27,41 +26,50 @@ This is index.blade.php
         <th>Subtitle</th>
         <th>View</th>
         <th>Edit</th>
-        <th>Delete</th>
 
       </tr>
       @foreach ($posts as $post)
 
       <tr>
-        <td><input type="checkbox" name="checkbox[]" value="{{$post['id']}}"></td>
-        <td>{{$post['id']}}</td>
-        <td>{{$post['title']}}</td>
-        <td>{{$post['body']}}</td>
+        <td><input type="checkbox" value="{{$post['id']}}" name=" checkbox[]"></td>
+
+        <td>{{$post['id']}}<input type="hidden" value="{{$post['id']}}" name="id[]"></td>
+
+        <td>{{$post['title']}}<input type="hidden" value="{{$post['title']}}" name="title[]"></td>
+
+        <td>{{$post['body']}}<input type="hidden" value="{{$post['body']}}" name="body[]"></td>
+
 
         <td><a href="/posts/{{$post['id']}}" class="btn btn-info">View</td>
         <td><a href="/posts/{{$post['id']}}/edit" class="btn btn-warning">Edit</td>
+
   </form>
-  <td>{!!Form::open(['action' => ['PostsController@destroy', $post->id], 'method'=>'POST', 'class'=> 'pull-right'])!!}
-    {{Form::hidden('_method', 'DELETE')}}
-    {{Form::submit('Delete', ['class' => 'btn btn-danger','name' => 'del'])}}
-    {!!Form::close() !!}
-  </td>
+
 
   </tr>
   @endforeach
 
   </table>
+
+  <div style="float: right;"><br>{{ $posts->links() }}<br></div>
+  <br><br><br><br>
+  <button type="submit" value="Submit" class="btn btn-success" name="getDataFromApi_StoreToDatabase">Get Data From API</button><br><br>
   <button type="submit" value="Submit" class="btn btn-success" name="export_to_csv">Export selected data to CSV</button><br>
+  <!-- <button type="submit" value="Submit" class="btn btn-success" name="truncate_posts">Truncate posts table</button><br> -->
   <small>select one, more or all data to export to CSV</small>
 
 
 </div>
 <br><br>
-<div style="float: right;">{{ $posts->links() }}</div>
+
 
 <br><br>
 
 @else
+<form action="postuser" method="POST" enctype="multipart/form-data">
+  @csrf
+  <button type="submit" value="Submit" class="btn btn-success" name="getDataFromApi_StoreToDatabase">Get Data From API</button><br>
+</form>
 <p>no posts found</p>
 &nbsp; <a href="/posts/create">Create post</a>
 

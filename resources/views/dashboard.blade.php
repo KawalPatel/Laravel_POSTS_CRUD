@@ -14,7 +14,7 @@
                     </div>
                     @endif
 
-                    <div style="text-align:center;"><a href="/posts/create">Create post now</a> || <a href="/posts">Show all posts</a></div><br>
+                    <div style="text-align:center;"><a href="/posts">Show all posts</a></div><br>
 
                     @if (count($users)>0)
                     <table class="table table-striped">

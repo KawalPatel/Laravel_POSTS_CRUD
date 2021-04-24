@@ -24,23 +24,10 @@ Route::get('/test', function () {
 });
 
 Route::get('/', ('PagesController@index'));
-// Route::get('/about', ('PagesController@about'));
-// Route::get('/services', ('PagesController@services'));
-Route::get('/bookappointment', 'PagesController@bookAppointment');
-
-/*show Couintryu Dataa-*/
-//Route::get('/registersssssssssss', 'DynamicDependent@index');
-/*show Couintryu Dataa-*/
-
-
-//UserManager
-// Route::get('/welcomeUser', 'PagesController@welcomeruser');
-
 Route::resource('posts', 'PostsController');
-
 Auth::routes();
-
 Route::post('/postuser', 'PostsController@store')->name('postuser');
+Route::post('/postuser', 'PostsController@store')->name('getDataFromApi_StoreToDatabase');
 Route::post('/posts/{id}/edit', 'PostsController@alert')->name('alert');
 Route::get('/exportAll', 'PostsController@exportCsv')->name('exportAll');
 Route::any('/customExport', 'PostsController@exportCsvCustom');
